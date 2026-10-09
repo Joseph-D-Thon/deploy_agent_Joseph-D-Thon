@@ -37,7 +37,7 @@ deploy(){
   rm -rf "$target_dir"
  fi
  PROJECT_DIR="$target_dir"
- mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" "$PROJECT_DIR/archives/attendance" "$PROJECT_DIR/archives/absent"
+ mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports"
  cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/"
  cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/"
  chmod +x "$PROJECT_DIR/attendance_checker.py"
@@ -59,21 +59,39 @@ deploy(){
   python3 -c "import json; p='$PROJECT_DIR/Helpers/config.json'; d=json.load(open(p)); d['total_sessions']=1; json.dump(d,open(p,'w'),indent=4)"
   echo "Option B: generated $num fresh rows with 0 counts, total_sessions=1"
  fi
-
  chmod 600 "$PROJECT_DIR/Helpers/config.json"
  echo "Set permission: 600 Helpers/config.json (owner read/write only)"
 
  read -r -p "Update alert thresholds? y/n: " up
  if [[ "$up" == "y" || "$up" == "Y" ]]; then
-  read -r -p "Enter warning threshold (default 75): " warn
-  read -r -p "Enter failure threshold (default 50): " fail
-  if [[ "$warn" =~ ^[0-9]+$ && "$fail" =~ ^[0-9]+$ ]]; then
-   sed -i "s/\"warning\":.*/\"warning\": $warn,/" "$PROJECT_DIR/Helpers/config.json"
-   sed -i "s/\"failure\":.*/\"failure\": $fail/" "$PROJECT_DIR/Helpers/config.json"
+   while true; do
+    read -r -p "Enter warning threshold (default 75): " warn
+    if [ -z "$warn" ]; then warn=75; fi
+    if ! [[ "$warn" =~ ^[0-9]+$ ]]; then
+     echo "Error: numbers only"
+     continue
+    fi
+    if [ "$warn" -gt 100 ]; then
+     echo "Error: must be 0 to 100"
+     continue
+    fi
+    break
+   done
+   while true; do
+ read -r -p "Enter failure (default 50): " fail
+    if ! [[ "$fail" =~ ^[0-9]+$ ]]; then
+     echo "Error: numbers only"
+     continue
+    fi
+    if [ "$fail" -gt 100 ]; then
+     echo "Error: must be 0 to 100"
+     continue
+    fi
+    break
+   done
+   sed -i "s/\"failure\": [0-9]*/\"failure\": $fail/" "$PROJECT_DIR/Helpers/config.json"
+   sed -i "s/\"warning\": [0-9]*/\"warning\": $warn/" "$PROJECT_DIR/Helpers/config.json"
    echo "Updated thresholds: warning=$warn, failure=$fail"
-  else
-   echo "Invalid numeric input - keeping defaults"
-  fi
  fi
 
  echo "Verifying deployment..."
