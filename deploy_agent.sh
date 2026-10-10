@@ -131,13 +131,13 @@ archive_logs(){
  TS=$(date +"%Y%m%d_%H%M%S")
  mkdir -p "$base/archives/attendance" "$base/archives/absent"
  if [ -f "$base/reports/attendance.log" ]; then 
-  cp "$base/reports/attendance.log" "$base/archives/attendance/attendance_${TS}.log"
+  mv "$base/reports/attendance.log" "$base/archives/attendance/attendance_${TS}.log"
   echo "Archived: $base/reports/attendance.log -> $base/archives/attendance/attendance_${TS}.log"
  else
   echo "attendance.log not found in $base/reports/"
  fi
  if [ -f "$base/reports/absent.log" ]; then 
-  cp "$base/reports/absent.log" "$base/archives/absent/absent_${TS}.log"
+  mv "$base/reports/absent.log" "$base/archives/absent/absent_${TS}.log"
   echo "Archived: $base/reports/absent.log -> $base/archives/absent/absent_${TS}.log"
  else
   echo "absent.log not found (e.g., no absents) - handled gracefully"
