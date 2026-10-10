@@ -6,7 +6,7 @@ TEMPLATE_DIR="$SCRIPT_DIR/templates"
 cleanup(){
  echo ""
  echo "Interrupted! Archiving incomplete project..."
- if [ -d "$PROJECT_DIR" ] && [ -n "$PROJECT_DIR" ]; then
+ if [ -n "$PROJECT_DIR" ] && [ -d "$PROJECT_DIR" ]; then
   if zip -r "${PROJECT_DIR}_archive.zip" "$PROJECT_DIR" >/dev/null 2>&1; then
    echo "Archived to ${PROJECT_DIR}_archive.zip"
    rm -rf "$PROJECT_DIR"
@@ -14,6 +14,17 @@ cleanup(){
   else
    echo "Archive failed - keeping $PROJECT_DIR for inspection"
   fi
+ else
+  shopt -s nullglob
+  for d in attendance_tracker_*; do
+    [ -d "$d" ] || continue
+    if zip -r "${d}_archive.zip" "$d" >/dev/null 2>&1; then
+      echo "Archived to ${d}_archive.zip"
+      rm -rf "$d"
+      echo "Deleted $d"
+    fi
+  done
+  shopt -u nullglob
  fi
  echo "Exiting cleanly."
  exit 1
@@ -44,10 +55,9 @@ deploy(){
  PROJECT_DIR="$target_dir"
   mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" || { echo "Error: cannot create project folder - permission denied"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
   cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/" || { echo "Error: failed to copy attendance_checker.py"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
-cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+ cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
  chmod +x "$PROJECT_DIR/attendance_checker.py"
  echo "Set permission: +x attendance_checker.py"
-
  head -n 1 "$TEMPLATE_DIR/assets.csv" > "$PROJECT_DIR/Helpers/assets.csv"
 
  while true; do
@@ -68,54 +78,48 @@ done
   python3 -c "import json; p='$PROJECT_DIR/Helpers/config.json'; d=json.load(open(p)); d['total_sessions']=5; json.dump(d,open(p,'w'),indent=4)"
   echo "Option A: copied $num rows + header, total_sessions=5 (4 prior + today)"
  else
-  NAMES=("Malong John" "Deng Leek" "Ayak Chol" "Akon Garang" "Mawien Dut" "Abuk Deng" "Maker Thon" "Adut Ajak" "Kuol Lual" "Achol Majok")
-  EMAILS=("malong.john@alustudent.com" "deng.leek@alustudent.com" "ayak.chol@alustudent.com" "akon.garang@alustudent.com" "mawien.dut@alustudent.com" "abuk.deng@alustudent.com" "maker.thon@alustudent.com" "adut.ajak@alustudent.com" "kuol.lual@alustudent.com" "achol.majok@alustudent.com")
-  for ((i=0;i<num;i++)); do echo "${EMAILS[$i]},${NAMES[$i]},0,0" >> "$PROJECT_DIR/Helpers/assets.csv"; done
+  for ((i=1;i<=num;i++)); do
+    while true; do
+      read -r -p "Name${i}: " cname
+      if [ -n "$cname" ]; then break; fi
+      echo "Error: name cannot be empty"
+    done
+    email=$(echo "$cname" | tr '[:upper:]' '[:lower:]' | tr ' ' '.' | tr -cd 'a-z.-')
+    email="${email}@alustudent.com"
+    echo "${email},${cname},0,0" >> "$PROJECT_DIR/Helpers/assets.csv"
+  done
   python3 -c "import json; p='$PROJECT_DIR/Helpers/config.json'; d=json.load(open(p)); d['total_sessions']=1; json.dump(d,open(p,'w'),indent=4)"
-  echo "Option B: generated $num fresh rows with 0 counts, total_sessions=1"
+  echo "Option B: generated $num fresh rows with custom names, total_sessions=1"
  fi
  chmod 600 "$PROJECT_DIR/Helpers/config.json"
  echo "Set permission: 600 Helpers/config.json (owner read/write only)"
-
  read -r -p "Update alert thresholds? y/n: " up
  if [[ "$up" == "y" || "$up" == "Y" ]]; then
    while true; do
     read -r -p "Enter warning threshold (default 75): " warn
     if [ -z "$warn" ]; then warn=75; fi
-    if ! [[ "$warn" =~ ^[0-9]+$ ]]; then
-     echo "Error: numbers only"
-     continue
-    fi
-    if [ "$warn" -gt 100 ]; then
-     echo "Error: must be 0 to 100"
-     continue
-    fi
+    if ! [[ "$warn" =~ ^[0-9]+$ ]]; then echo "Error: numbers only"; continue; fi
+    if [ "$warn" -gt 100 ]; then echo "Error: must be 0 to 100"; continue; fi
     break
    done
    while true; do
  read -r -p "Enter failure threshold (default 50): " fail
     if [ -z "$fail" ]; then fail=50; fi
-    if ! [[ "$fail" =~ ^[0-9]+$ ]]; then
-     echo "Error: numbers only"
-     continue
-    fi
-    if [ "$fail" -gt 100 ]; then
-     echo "Error: must be 0 to 100"
-     continue
-    fi
+    if ! [[ "$fail" =~ ^[0-9]+$ ]]; then echo "Error: numbers only"; continue; fi
+    if [ "$fail" -gt 100 ]; then echo "Error: must be 0 to 100"; continue; fi
     break
    done
    sed -i "s/\"failure\": [0-9]*/\"failure\": $fail/" "$PROJECT_DIR/Helpers/config.json"
    sed -i "s/\"warning\": [0-9]*/\"warning\": $warn/" "$PROJECT_DIR/Helpers/config.json"
    echo "Updated thresholds: warning=$warn, failure=$fail"
  fi
-
  echo "Verifying deployment..."
  ls -R "$PROJECT_DIR"
  cat "$PROJECT_DIR/Helpers/config.json"
  trap - SIGINT SIGTSTP
  (cd "$PROJECT_DIR" && python3 attendance_checker.py)
  PROJECT_DIR=""
+ trap cleanup SIGINT SIGTSTP
 }
 
 run_app(){ 
@@ -144,6 +148,7 @@ archive_logs(){
  fi
 }
 
+trap cleanup SIGINT SIGTSTP
 while true; do 
  echo ""
  echo "=== deploy_agent - Joseph-D-Thon ==="
