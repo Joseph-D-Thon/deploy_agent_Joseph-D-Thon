@@ -1,6 +1,6 @@
 # deploy_agent_Joseph-D-Thon - Joseph D Thon
 Student: Joseph D Thon
-Video: https://drive.google.com/file/d/REPLACE_WITH_YOUR_LINK/view?usp=sharing
+Video: [PASTE DRIVE LINK - REQUIRED]
 
 ## How to Run
 chmod +x deploy_agent.sh
