@@ -42,9 +42,9 @@ deploy(){
   rm -rf "$target_dir"
  fi
  PROJECT_DIR="$target_dir"
- mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" || { echo "Error: cannot create project folder - permission denied"; PROJECT_DIR=""; return 1; }
- cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/" || { echo "Error: failed to copy attendance_checker.py"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; return 1; }
-cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; return 1; }
+  mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" || { echo "Error: cannot create project folder - permission denied"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+  cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/" || { echo "Error: failed to copy attendance_checker.py"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
  chmod +x "$PROJECT_DIR/attendance_checker.py"
  echo "Set permission: +x attendance_checker.py"
 
@@ -148,6 +148,6 @@ while true; do
  echo ""
  echo "=== deploy_agent - Joseph-D-Thon ==="
  echo "1) Deploy  2) Run  3) Archive  4) Exit"
- read -r -p "Select: " c
+  read -r -p "Select: " c || exit
  case $c in 1) deploy;; 2) run_app;; 3) archive_logs;; 4) echo "Bye"; exit 0;; *) echo "Invalid option";; esac
 done
