@@ -31,7 +31,7 @@ check_env(){
 deploy(){
  trap cleanup SIGINT SIGTSTP
  check_env
-  read -r -p "Project name (e.g. Joseph-D-Thon): " pname
+ read -r -p "Project name (e.g. Joseph-D-Thon): " pname
  if [ -z "$pname" ]; then echo "Error: name empty"; trap - SIGINT SIGTSTP; return 1; fi
  if [[ ! "$pname" =~ ^[A-Za-z0-9_-]+$ ]]; then echo "Error: invalid project name - only letters, numbers, underscore and hyphen allowed"; trap - SIGINT SIGTSTP; return 1; fi
 
@@ -42,27 +42,27 @@ deploy(){
   rm -rf "$target_dir"
  fi
  PROJECT_DIR="$target_dir"
-  mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" || { echo "Error: cannot create project folder - permission denied"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
-  cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/" || { echo "Error: failed to copy attendance_checker.py"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
-cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+ mkdir -p "$PROJECT_DIR/Helpers" "$PROJECT_DIR/reports" || { echo "Error: cannot create project folder - permission denied"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+ cp "$TEMPLATE_DIR/attendance_checker.py" "$PROJECT_DIR/" || { echo "Error: failed to copy attendance_checker.py"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
+ cp "$TEMPLATE_DIR/config.json" "$PROJECT_DIR/Helpers/" || { echo "Error: failed to copy config.json"; rm -rf "$PROJECT_DIR"; PROJECT_DIR=""; trap - SIGINT SIGTSTP; return 1; }
  chmod +x "$PROJECT_DIR/attendance_checker.py"
  echo "Set permission: +x attendance_checker.py"
 
  head -n 1 "$TEMPLATE_DIR/assets.csv" > "$PROJECT_DIR/Helpers/assets.csv"
 
  while true; do
-read -r -p "Roster build - Option A copy template or B generate fresh (A/B): " opt
-case "$opt" in
-A|a) break ;;
-B|b) break ;;
-*) echo "Error: invalid option - choose A or B"; continue ;;
-esac
-done
+   read -r -p "Roster build - Option A copy template or B generate fresh (A/B): " opt
+   case "$opt" in
+     A|a) break ;;
+     B|b) break ;;
+     *) echo "Error: invalid option - choose A or B"; continue ;;
+   esac
+ done
  while true; do
-read -r -p "How many students (1-10): " num
-if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -ge 1 ] && [ "$num" -le 10 ]; then break; fi
-echo "Error: enter number 1-10"
-done
+   read -r -p "How many students (1-10): " num
+   if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -ge 1 ] && [ "$num" -le 10 ]; then break; fi
+   echo "Error: enter number 1-10"
+ done
  if [[ $opt == "A" || $opt == "a" ]]; then
   tail -n +2 "$TEMPLATE_DIR/assets.csv" | head -n "$num" >> "$PROJECT_DIR/Helpers/assets.csv"
   python3 -c "import json; p='$PROJECT_DIR/Helpers/config.json'; d=json.load(open(p)); d['total_sessions']=5; json.dump(d,open(p,'w'),indent=4)"
@@ -93,7 +93,7 @@ done
     break
    done
    while true; do
- read -r -p "Enter failure threshold (default 50): " fail
+    read -r -p "Enter failure threshold (default 50): " fail
     if [ -z "$fail" ]; then fail=50; fi
     if ! [[ "$fail" =~ ^[0-9]+$ ]]; then
      echo "Error: numbers only"
@@ -148,6 +148,6 @@ while true; do
  echo ""
  echo "=== deploy_agent - Joseph-D-Thon ==="
  echo "1) Deploy  2) Run  3) Archive  4) Exit"
-  read -r -p "Select: " c || exit
+ read -r -p "Select: " c || exit
  case $c in 1) deploy;; 2) run_app;; 3) archive_logs;; 4) echo "Bye"; exit 0;; *) echo "Invalid option";; esac
 done
