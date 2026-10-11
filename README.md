@@ -49,6 +49,7 @@ After the roster, the script asks `Update alert thresholds? y/n`. On `y`:
 - It asks for warning (default 75) and failure (default 50). Enter takes the default.
 - Each value must be digits only and 0-100, otherwise it asks again (tested with `abc` and `150`).
 - `sed -i` changes only the number after `"warning":` and `"failure":`, so the file layout stays the same.
+- `sed -i` is GNU sed, so the threshold update needs Linux or WSL. I tested it on Ubuntu under WSL.
 
 ## Feature 2: Run
 Menu option 2 asks for the project name, checks the folder exists, and runs `python3 attendance_checker.py` inside it. A missing project prints an error and returns to the menu.
@@ -69,6 +70,8 @@ During a deployment, `trap` catches SIGINT (Ctrl+C) and SIGTSTP (Ctrl+Z). The sc
 4. exits.
 
 If the signal comes before the project folder exists (for example at the name prompt), nothing is archived. The trap is turned off before the marking session, so Ctrl+C there only stops the app.
+
+The zip is created in the folder you launched the script from, not inside the project. For example, if you run the script from the repository folder, look for `attendance_tracker_{name}_archive.zip` next to `deploy_agent.sh`.
 
 ### How to test it
 ```bash
