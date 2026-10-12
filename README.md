@@ -33,15 +33,22 @@ attendance_tracker_{name}/
 └── reports/
 ```
 `archives/` is created later by Feature 3.
+
 5. **Errors:** if `mkdir` or a `cp` fails (for example permission denied), the script prints an error, removes the half-made folder and returns to the menu.
+
 6. **Roster:** Option A copies the header plus N rows from `templates/assets.csv`. Option B builds N rows from arrays of names and emails inside the script, with both counts at 0. An invalid option, or a count outside 1-10, asks again.
+
 7. **`total_sessions`:** it is one more than the prior sessions in the roster. Each sample row has 4 prior sessions (attendance plus absences), so Option A sets 5. A fresh Option B roster has none, so it sets 1.
+
 8. **Permissions:** `chmod +x` on `attendance_checker.py` and `chmod 600` on `Helpers/config.json`. On a deployed project, `ls -l` showed:
+
 ```
 -rwxr-xr-x ... attendance_checker.py
 -rw------- ... Helpers/config.json
 ```
+
 9. **Thresholds:** see below.
+
 10. **Verify:** the script prints `ls -R` and `config.json`, then starts the app. A successful start shows the structure, roster and config work together.
 
 ## Threshold update
