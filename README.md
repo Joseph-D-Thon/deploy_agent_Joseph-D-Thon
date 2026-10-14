@@ -101,3 +101,6 @@ You should see the `.zip` and no `attendance_tracker_trapdemo` folder. The zip h
 ## Known limitations
 - The script does not check that the failure threshold is lower than the warning threshold.
 - Running the app a second time on the same project makes the counts exceed `total_sessions`. The app prints a note and carries on.
+
+## Demo Video
+[Demo Video](https://drive.google.com/file/d/1PAI76-Qc_DxUR2rDzUXLpEXVXVna0pee/view?usp=sharing)
