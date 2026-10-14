@@ -1,6 +1,6 @@
 # deploy_agent_Joseph-D-Thon
 
-**Video:** [PASTE LINK HERE]
+**Video:** [https://drive.google.com/file/d/1PAI76-Qc_DxUR2rDzUXLpEXVXVna0pee/view?usp=sharing]
 
 `deploy_agent.sh` deploys the Student Attendance Tracker, runs it, and archives its logs. It also handles Ctrl+C and Ctrl+Z during deployment.
 
